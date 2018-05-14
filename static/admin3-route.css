@@ -1,0 +1,73 @@
+
+  /* Always set the map height explicitly to define the size of the div
+   * element that contains the map. */
+
+  #map {
+      display: inline-block;
+      height: 600px;
+      width: 1050px;
+      margin-left: 30px;
+  }
+  .h2_name{
+      margin-left: 30px;
+      display: inline-block
+  }
+  .h3_price{
+      margin-left: 200px;
+      display: inline-block
+  }
+  .h3_time{
+      display: inline-block;
+      margin-left: 200px;
+  }
+  /* Optional: Makes the sample page fill the window. */
+  html, body {
+    height: 30%;
+    margin: 0;
+    padding: 0;
+  }
+
+
+  .wrapper{
+      display: inline-block;
+      margin-bottom: 600px;
+  }
+
+  /*Базовая обертка*/
+.droplink {
+  width:200px;
+  position:absolute;
+  border-radius:3px;
+  margin:10px 0 0 25px
+}
+/*Сбросим отступы*/
+.droplink ul{padding:0;margin:0}
+/*стиль кнопки*/
+.socialbutton {
+  background-color:#ededed;
+  border:1px solid #dcdcdc;
+  display:inline-block;
+  color:#777777;
+  font-size:15px;
+  font-weight:bold;
+  padding:8px 27px;
+  text-decoration:none;
+  margin-top: 10px;
+  cursor: pointer}
+/*кнопка при наведении*/
+.socialbutton:hover {background-color:#dfdfdf}
+/*активное состояние кнопки*/
+.socialbutton:active{position:relative;top:1px}
+.droplink li{display:block}
+/*Стиль элемента списка*/
+.droplink li a{
+  padding:5px 12px 4px 34px;
+  margin:1px;
+  display:block;
+  color:#000;
+  text-decoration: none;
+  font-size:12px;
+  background-repeat:no-repeat;
+  background-position: 10px 3px}
+/*Стиль элемента при наведении*/
+.droplink li a:hover {background-color: #999}

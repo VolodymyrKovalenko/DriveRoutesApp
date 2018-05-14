@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RoutesMap</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin3-route.css') }}">
+</head>
+<body>
+{% if curent_route is not none %}
+    <div>
+        <h2 class="h2_name" >{{ curent_route.name }}</h2>
+        <h3 class="h3_price">Price: {{ curent_route.price }} UAH</h3>
+        <h3 class="h3_time">Time in road: {{ curent_route.time }} hours</h3>
+    </div>
+{% else %}
+    <h2 class="h2_name">Map of routes</h2>
+{% endif %}
+<div id="map"></div>
+    <div class="wrapper">
+<div class="droplink">
+<a class="socialbutton" onclick="down()">Routes list</a>
+<ul id="dropdown" style="display:none">
+    {% for route in routes %}
+        <li><a href="http://127.0.0.1:5000/routes/{{route.id}}">{{ route.name }}</a>
+    {% endfor %}
+</ul>
+</div>
+</div>
+
+    <script type="text/javascript">
+function down()
+{
+  var a = document.getElementById('dropdown');
+  if ( a.style.display == 'none' )
+    a.style.display = 'block'
+  else
+    if ( a.style.display == 'block' )
+    a.style.display = 'none';
+};
+</script>
+
+
+    <script>
+      var map;
+      function initMap() {
+          map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 48.397, lng: 20.644},
+          zoom: 5
+        });
+        var points = JSON.parse('{{ points|safe }}');
+        var marker;
+        var busPlanCoordinates = [];
+
+        for (var i = 0; i < points.length; i++) {
+            busPlanCoordinates.push({lat:points[i].lat, lng:points[i].lng});
+            }
+
+        var busPath = new google.maps.Polyline({
+          path: busPlanCoordinates,
+          geodesic: true,
+          strokeColor: '#3c32ff',
+          strokeOpacity: 1.0,
+          strokeWeight: 2
+        });
+
+        busPath.setMap(map);
+
+
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCOsCUqdmUGHLgf5UASI58trFGoJ_0_zvM&callback=initMap"
+    async defer></script>
+</body>
+</html>

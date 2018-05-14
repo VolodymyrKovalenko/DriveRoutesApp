@@ -1,0 +1,12 @@
+{% extends 'admin/model/list.html' %}
+{% block head_css %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin3-route.css') }}">
+    <link rel="stylesheet" href="../static/bootstrap-4.0.0-alpha.6-dist/css/bootstrap.css">
+{% endblock head_css %}
+
+{% block body %}
+    {{ super() }}
+
+    <a href="/routes" class="btn btn-secondary" role="button">Routes map info</a>
+{% endblock %}
