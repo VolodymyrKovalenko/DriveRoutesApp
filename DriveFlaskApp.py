@@ -2,10 +2,12 @@ from flask import Flask, render_template, json,jsonify, redirect, url_for, reque
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin, expose, BaseView, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
+from flask_login import UserMixin, LoginManager, current_user, login_user,logout_user
+
 from collections import OrderedDict
 from marshmallow import Schema, fields, pprint
 
-from SQLAlchemy_drive_db import User, Stops, Drivers, Buses, Companies, Routes,stops_routes
+from SQLAlchemy_drive_db import User, Stops, Drivers, Buses, Companies, Routes, Passenger, Order
 
 app = Flask(__name__)
 app.secret_key = 'super secret key'
@@ -34,17 +36,22 @@ class RouteListInfo(ModelView):
 
 
 admin = Admin(app)
+admin.add_view(ModelView(User, db.session))
 admin.add_view(StopsAddPoint(Stops,db.session))
 admin.add_view(StopsMapView(name='Map of stops'))
 admin.add_view(ModelView(Drivers,db.session))
 admin.add_view(ModelView(Buses, db.session))
 admin.add_view(ModelView(Companies, db.session))
 admin.add_view(RouteListInfo(Routes, db.session))
+admin.add_view(ModelView(Passenger,db.session))
+admin.add_view(ModelView(Order,db.session))
+
+# db_adapter = SQLAlchemyAdapter(db,User)
+
 
 @app.route('/')
 def start():
     return redirect(url_for('routes2'))
-
 
 @app.route('/routes',defaults={'ids':None})
 @app.route('/routes/<ids>',methods=['POST','GET'])

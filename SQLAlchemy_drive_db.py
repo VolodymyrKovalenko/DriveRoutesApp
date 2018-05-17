@@ -1,9 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask import Flask
+import enum
 
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
+import pycountry
 
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
@@ -17,10 +19,32 @@ manager.add_command('db', MigrateCommand)
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    login = db.Column(db.String(80), unique=True)
-    password = db.Column(db.String(80), unique=True)
-    email = db.Column(db.String(120), unique=True)
+    login = db.Column(db.String(80),nullable=False, unique=True)
+    password = db.Column(db.String(80),nullable=False, server_default='')
+    active = db.Column(db.Boolean(),nullable=False,server_default='0')
 
+
+countries_enum = list(map(lambda country: country.name,pycountry.countries))
+
+class Passenger(db.Model):
+    __tablename__ = 'passenger'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80),nullable=False)
+    surname = db.Column(db.String(80),nullable=False)
+    sex = db.Column(db.Enum('male','female'),nullable=False)
+    nationality = db.Column(db.Enum(*countries_enum),nullable=False)
+    password = db.Column(db.String(80),nullable=False)
+    orders = db.relationship('Order', backref='Orders2')
+
+class Order(db.Model):
+    __tablename__ = 'order'
+    id = db.Column(db.Integer, primary_key=True)
+    order_data  = db.Column(db.DateTime,nullable=False)
+    route_id = db.Column(db.INTEGER, db.ForeignKey('routes.id'))
+    seat_number = db.Column(db.INTEGER, nullable=False)
+    passenger_id = db.Column(db.INTEGER, db.ForeignKey('passenger.id'))
+    email = db.Column(db.String(80))
+    telephone = db.Column(db.String(80))
 
 
 stops_routes = db.Table('stops_routes',
@@ -75,6 +99,7 @@ class Routes(db.Model):
     time = db.Column(db.Float)
     buses = db.relationship('Buses',backref="Route's bus")
     stops = db.relationship('Stops', secondary=stops_routes, backref="stops")
+    orders = db.relationship('Order',backref='Orders')
 
     def __repr__(self):
         return self.name
