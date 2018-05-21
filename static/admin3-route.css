@@ -6,20 +6,35 @@
       display: inline-block;
       height: 600px;
       width: 1050px;
-      margin-left: 30px;
+
   }
-  .h2_name{
-      margin-left: 30px;
+  .h3_name{
+      margin-left: 10px;
+      width: 320px;
       display: inline-block
   }
-  .h3_price{
-      margin-left: 200px;
+  .h4_price{
+      width: 320px;
       display: inline-block
   }
-  .h3_time{
+  .h4_time{
+      width: 420px;
       display: inline-block;
-      margin-left: 200px;
   }
+  .buyTicketBtn{
+      width: 130px;
+      display: inline-block;
+  }
+  .left_content{
+      display: inline-block;
+      height: 600px;
+      width: 1050px;
+      margin-left: 30px;
+  }
+  .stopsNameDiv{
+      height: 200px;
+  }
+
   /* Optional: Makes the sample page fill the window. */
   html, body {
     height: 30%;
@@ -29,14 +44,17 @@
 
 
   .wrapper{
+      float: right;
       display: inline-block;
-      margin-bottom: 600px;
+      height: 400px;
+      width: 200px;
+
   }
 
   /*Базовая обертка*/
 .droplink {
-  width:200px;
-  position:absolute;
+  width:260px;
+  position:relative;
   border-radius:3px;
   margin:10px 0 0 25px
 }
@@ -61,12 +79,12 @@
 .droplink li{display:block}
 /*Стиль элемента списка*/
 .droplink li a{
-  padding:5px 12px 4px 34px;
+  padding:5px 12px 4px 24px;
   margin:1px;
   display:block;
   color:#000;
   text-decoration: none;
-  font-size:12px;
+  font-size:14px;
   background-repeat:no-repeat;
   background-position: 10px 3px}
 /*Стиль элемента при наведении*/

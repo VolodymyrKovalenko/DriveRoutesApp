@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask import Flask
 import enum
+from _datetime import datetime
 
 from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
@@ -33,7 +34,7 @@ class Passenger(db.Model):
     surname = db.Column(db.String(80),nullable=False)
     sex = db.Column(db.Enum('male','female'),nullable=False)
     nationality = db.Column(db.Enum(*countries_enum),nullable=False)
-    password = db.Column(db.String(80),nullable=False)
+    passport = db.Column(db.String(80),nullable=False)
     orders = db.relationship('Order', backref='Orders2')
 
 class Order(db.Model):
@@ -76,9 +77,22 @@ class Buses(db.Model):
     route_id = db.Column(db.INTEGER,db.ForeignKey('routes.id'))
     company_id = db.Column(db.INTEGER,db.ForeignKey('companies.id'))
     driver_id = db.Column(db.INTEGER,db.ForeignKey('drivers.id'))
+    number_of_seat = db.Column(db.INTEGER)
+    bus_schedule = db.relationship('Schedule', backref="Bus_schedule")
 
     def __repr__(self):
         return self.model
+class Schedule(db.Model):
+    __tablename__ = 'schedule'
+    id = db.Column(db.Integer, primary_key=True)
+    bus_id = db.Column(db.INTEGER,db.ForeignKey('buses.id'))
+    departure_data = db.Column(db.DateTime,nullable=False,default=datetime.utcnow)
+
+    def __repr__(self):
+        return 'Schedule at time {0}'.format(self.departure_data)
+
+
+
 
 class Companies(db.Model):
     __tablename__ = 'companies'
