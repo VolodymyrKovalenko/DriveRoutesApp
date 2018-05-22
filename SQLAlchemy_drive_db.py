@@ -16,8 +16,9 @@ migrate = Migrate(app, db)
 manager = Manager(app)
 
 manager.add_command('db', MigrateCommand)
+from flask_login import UserMixin
 
-class User(db.Model):
+class User(UserMixin,db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(80),nullable=False, unique=True)
