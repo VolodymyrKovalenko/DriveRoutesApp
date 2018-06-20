@@ -1,0 +1,36 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block content %}
+    <div class="alert alert-info">
+        <div><h2>Schedule tickets</h2></div>
+    </div>
+ <div class="container">
+    <div class="row">
+        <div class="col col-md-8">
+        <table class="table">
+        <thead class="thead-light">
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Departure time</th>
+              <th scope="col">Bus</th>
+              <th scope="col">Time</th>
+                <th>Buy tickets</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for schedule in schedules %}
+            <tr>
+                <th>{{ schedule[0].name }}</th>
+                <th>{{ schedule[1].departure_data }}</th>
+                <th>{{ schedule[2].model }}</th>
+                <th>{{ schedule[0].time }}</th>
+                <th><a href="http://127.0.0.1:5000/buy_tickets/{{ schedule[0].id }}/{{ schedule[1].id }}" class="btn btn-primary">But ticket</a></th>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+        </div>
+    </div>
+ </div>
+
+{% endblock %}

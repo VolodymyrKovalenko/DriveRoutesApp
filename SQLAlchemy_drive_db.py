@@ -79,15 +79,17 @@ class Buses(db.Model):
     company_id = db.Column(db.INTEGER,db.ForeignKey('companies.id'))
     driver_id = db.Column(db.INTEGER,db.ForeignKey('drivers.id'))
     number_of_seat = db.Column(db.INTEGER)
-    bus_schedule = db.relationship('Schedule', backref="Bus_schedule")
+    bus_schedule = db.relationship('Schedule', backref="Bus_schedule2")
+
 
     def __repr__(self):
         return self.model
 class Schedule(db.Model):
     __tablename__ = 'schedule'
     id = db.Column(db.Integer, primary_key=True)
-    bus_id = db.Column(db.INTEGER,db.ForeignKey('buses.id'))
+    route_id = db.Column(db.INTEGER,db.ForeignKey('routes.id'))
     departure_data = db.Column(db.DateTime,nullable=False,default=datetime.utcnow)
+    bus_id = db.Column(db.INTEGER, db.ForeignKey('buses.id'))
 
     def __repr__(self):
         return 'Schedule at time {0}'.format(self.departure_data)
@@ -115,6 +117,7 @@ class Routes(db.Model):
     buses = db.relationship('Buses',backref="Route's bus")
     stops = db.relationship('Stops', secondary=stops_routes, backref="stops")
     orders = db.relationship('Order',backref='Orders')
+    bus_schedule = db.relationship('Schedule', backref="Bus_schedule")
 
     def __repr__(self):
         return self.name

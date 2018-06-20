@@ -1,10 +1,13 @@
-from flask import Flask, render_template, json,jsonify, redirect, url_for, request, flash, g, session
+from flask import Flask, render_template, json,jsonify, redirect, url_for, request, flash, g, session, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin, expose, BaseView, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from flask_bootstrap import Bootstrap
 from functools import wraps
 from flask_login import LoginManager, UserMixin, logout_user, login_user, login_required
+import stripe
+import stripe
+import os
 
 from collections import OrderedDict
 from marshmallow import Schema, fields, pprint
@@ -13,6 +16,7 @@ from SQLAlchemy_drive_db import User, Stops, Drivers, Buses, Companies, Routes\
     , Passenger, Order,Schedule
 from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, IntegerField, PasswordField
+
 
 app = Flask(__name__)
 app.secret_key = 'super secret key'
@@ -26,26 +30,36 @@ login_manager.init_app(app)
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
+
+class MyIterator:
+    def __init__(self,iterable_obj):
+        self.iterable_obj = iterable_obj
+        self.index = -1
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self.index +=1
+        if self.index == len(self.iterable_obj):
+            raise StopIteration
+        else:
+            return self.iterable_obj[self.index]
+
+
 class StopsMapView(BaseView):
+    """return stop map view which extend base view"""
     @expose('/')
     def index(self):
         points = []
 
         stops_list = db.session.query(Stops).all()
-        iterator = iter(stops_list)
-        for _ in range(0,len(stops_list)):
-            next_item = next(iterator)
-            stops_dict = next_item.__dict__
+        for item in MyIterator(stops_list):
+            stops_dict = item.__dict__
             if '_sa_instance_state' in stops_dict:
                 del stops_dict['_sa_instance_state']
             points.append(stops_dict)
-
-
-        # for u in db.session.query(Stops).all():
-        #     stops_dict = u.__dict__
-        #     if '_sa_instance_state' in stops_dict:
-        #         del stops_dict['_sa_instance_state']
-        #     points.append(stops_dict)
 
         return self.render('admin/stopsMap.html',points=json.dumps(points))
 
@@ -69,21 +83,22 @@ admin.add_view(ModelView(Passenger,db.session))
 admin.add_view(ModelView(Order,db.session))
 admin.add_view(ModelView(Schedule,db.session))
 
-
 @app.route('/')
 def start():
     return redirect(url_for('routes2'))
 
+
 @app.route('/routes',defaults={'ids':None})
 @app.route('/routes/<ids>',methods=['POST','GET'])
 def routes2(ids):
+    """at first return default route, then after query return
+    selected route which connected with its ids"""
     points = None
     curent_route = None
     routes_name = db.session.query(Routes)
     if ids:
         points = []
         curent_route = db.session.query(Routes).filter(Routes.id == ids).first()
-        print(curent_route)
 
         for u in db.session.query(Stops) \
                 .join(Routes.stops).filter(Routes.id == ids):
@@ -102,22 +117,17 @@ class PassangerForm(FlaskForm):
     nationality = SelectField(choices=[(g, g)for g in Passenger.nationality.property.columns[0].type.enums])
     passport = StringField('Enter passport series and number')
 
-class OrderForm(FlaskForm):
-    seat_number = IntegerField('')
-    surname = StringField('Enter surname')
-    sex = SelectField(choices=[(g, g)for g in Passenger.sex.property.columns[0].type.enums])
-    nationality = SelectField(choices=[(g, g)for g in Passenger.nationality.property.columns[0].type.enums])
-    passport = StringField('Enter passport series and number')
 
 class UserForm(FlaskForm):
     login = StringField('Enter login')
     password = PasswordField('Enter password')
 
 
-@app.route('/buy_tickets/<route_id>',methods=['POST','GET'])
+@app.route('/buy_tickets/<route_id>/<schedule_id>',methods=['POST','GET'])
 @login_required
-def buy_tickets(route_id):
+def buy_tickets(route_id,schedule_id):
     route = db.session.query(Routes).filter(Routes.id == route_id).first()
+    schedule = db.session.query(Schedule).filter(Schedule.id == schedule_id).first()
     form = PassangerForm()
     if request.method=='POST':
         if form.validate_on_submit():
@@ -127,7 +137,23 @@ def buy_tickets(route_id):
             db.session.commit()
             flash('Passenger has been registered')
 
-    return render_template('BuyTicket.html',form=form, route = route)
+    return render_template('BuyTicket.html',form=form, route = route, schedule=schedule)
+
+def counted(f):
+    def wrapped(*args, **kwargs):
+        wrapped.calls += 1
+        print('{} has been call {} times'.format(f,wrapped.calls))
+        return f(*args, **kwargs)
+    wrapped.calls = 0
+    return wrapped
+
+@app.route('/schedule/<route_id>',methods=['POST','GET'])
+@counted
+def schedule(route_id):
+    schedules = db.session.query(Routes,Schedule,Buses).join(Schedule).filter(Schedule.route_id == route_id).join(Buses).filter(Schedule.bus_id == Buses.id)
+
+    return render_template('Schedule.html', schedules=schedules)
+
 
 
 
@@ -138,9 +164,7 @@ def login():
         if form.validate_on_submit():
             user_data = db.session.query(User).filter(User.login == form.login.data).first()
             if user_data:
-                print(1)
                 if user_data.password == form.password.data:
-                    print(2)
                     login_user(user_data)
                     return redirect(url_for('routes2'))
     return render_template('logIn.html', form=form)
@@ -150,9 +174,31 @@ def logout():
     logout_user()
     return 'You has been logout'
 
+@app.errorhandler(401)
+def custom_401(error):
+    return render_template('Unauthorized_error.html')
 
-# @app.route('bus_schedule/<route_id>',methods=['POST','GET'])
-# def bus_schedule(route_id):
+stripe.api_key = app.secret_key
+
+@app.route('/pay',methods=['POST'])
+def pay():
+    customer = stripe.Customer.create(email = request.form['stripeEmail'], source = request.form['stripeToken'])
+
+    charge = stripe.Charge.create(
+        customer = customer.id,
+        amount = 111,
+        currency = 'usd',
+        description = 'The product'
+    )
+
+    return redirect(url_for('routes'))
+
+pub_key = 'pk_test'
+
+@app.route('/payment')
+def payment():
+    return render_template('Payment.html', pub_key=pub_key)
+
 
 
 

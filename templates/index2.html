@@ -1,0 +1,19 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+
+  <form action="/charge" method="post">
+
+    <article>
+
+      <label>Amount: $5.00</label>
+
+    </article>
+
+
+    <script src="https://button.stripe.com/v1/button.js" class="stripe-button" data-key="{{ key }}"></script>
+
+  </form>
+
+{% endblock %}
